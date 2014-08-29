@@ -15,7 +15,7 @@
 #NC_006067	AUG5	start_codon	2659	2661	.	+	0	Parent=aug5.g1.t1
 #NC_006067	AUG5	CDS	2659	5277	0.97	+	0	Parent=aug5.g1.t1
 #NC_006067	AUG5	stop_codon	5275	5277	.	+	0	Parent=aug5.g1.t1
-#
+
 
 
 # Input needs to be converted to tab separated:
