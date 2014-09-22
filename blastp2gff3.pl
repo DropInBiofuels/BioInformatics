@@ -74,7 +74,7 @@ use strict;
 	my $counter = 0;
 	my $real_parent;
 	
-	my $type = "CDS";
+	my $type = "match";
 	my $source = "blastp";
 	
 #parse AUGUSTUS gff3
@@ -115,8 +115,11 @@ while(defined(my $AUGUSTUS_line = <FileHandler_AUGUSTUS>)){
 				$annotation = $blastP[3];
 				$SUBJlength = $blastP[5];
 				$ID = $parent.".a".$counter; # For unique ID
-				print FileHandler_outFILE "$seqid\t$source\t$type\t$start\t$stop\t$score\t$strand\t$phase\tName=$annotation;ID=$ID;Length=$SUBJlength;Perc. identy=$identity;dbxref=$accession\n";
+				$hitSTART = ;
+				$hitSTOP = ;
+				print FileHandler_outFILE "$seqid\t$source\t$type\t$start\t$stop\t$score\t$strand\t$phase\tName=$annotation;ID=$ID;Length=$SUBJlength;Perc. identy=$identity;Dbxref=$accession\n";
 			}
+		
 		$counter = $counter+1; # For unique ID
 		}
 		seek FileHandler_blastP,0,0;	
