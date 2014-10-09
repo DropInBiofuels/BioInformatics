@@ -2,7 +2,7 @@
 ## Proteins with the greatest Distance to each other. This works quite fast (approx. 10 min on an i5)
 ## for very large alignments (>10K Sequences), but requires some memory (approx. 5GB) for each calculation.
 ## Thus please run the calculation of the two matrices seperatly.
-## J. Kabisch 2013
+## J. Kabisch 2014
 ## kabisch@uni-greifswald.de
 
 # load library and sequence alignment
