@@ -1,4 +1,4 @@
-## Script to plot Nanodrop Data
+## Script to plot Nanodrop Data from ndv export
 ## J. Kabisch 2014
 ## kabisch@uni-greifswald.de
 library(reshape)
@@ -12,6 +12,5 @@ protein <- subset(values, select = c(X260.280)) # extract protein contamination
 md <- melt(curve.values, id=(c("Sample.ID"))) # transform to ggplot format
 md$variable<-substring(md$variable,2) # remove X in front of variables
 p <- ggplot(md) + geom_line(aes(x=variable, y=value, group=Sample.ID)) + facet_wrap(~Sample.ID) + ylim(-1, 6)
-p <-p + annotate("text", x=300, y=6, label = c(~amount))
-p
+
            
