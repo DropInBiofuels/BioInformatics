@@ -6,6 +6,8 @@
 
 # This script converts blastp predictions run with custom table format:
 # blastp -max_target_seqs 15 -show_gis -outfmt '6 qseqid sseqid sscinames stitle pident length evalue'  -query aug5.pep -out aug5.blast -db nr -num_threads 12
+# New Command:
+# blastp -max_target_seqs 15 -show_gis -outfmt '6 qseqid sseqid sscinames qstart qend sstart send stitle pident length evalue'
 #, based on translated AUGUSTUS output, to a gff3 for jbrowse
 # Usage: blastp2gff3.pl
 
@@ -39,6 +41,13 @@
 #~ aug5.g2.t1_1	gi|149238586|ref|XP_001525169.1|	Lodderomyces elongisporus NRRL YB-4239	heat shock protein SSB1 [Lodderomyces elongisporus NRRL YB-4239]	85.32	613	0.0
 #~ aug5.g2.t1_1	gi|584390961|emb|CDK29068.1|	Kuraishia capsulata CBS 1993	unnamed protein product [Kuraishia capsulata CBS 1993]	85.97	613	0.0
 
+# new Example in blastp result
+###query seqID	subject seqID	Subject scien name	query start	q-end	subj.start	subj.End	subj. title (Annotation)	perc. ident.	length	e-val.
+#g1.t1	gi|401888515|gb|EJT52471.1|	Trichosporon asahii var. asahii CBS 2479;Trichosporon asahii var. asahii CBS 8904	1	157	493	646	hypothetical protein A1Q1_03987 [Trichosporon asahii var. asahii CBS 2479]	59.26	162	6e-53
+#g1.t1	gi|589270448|ref|XP_007000954.1|	Tremella mesenterica DSM 1558	1	115	335	457	hypothetical protein TREMEDRAFT_41800 [Tremella mesenterica DSM 1558]	33.86	127	5e-08
+#g1.t1	gi|321253750|ref|XP_003192837.1|	Cryptococcus gattii WM276	4	129	550	680	hypothetical protein CGB_C4100C [Cryptococcus gattii WM276]	29.85	134	4e-07
+
+
 use warnings;
 use strict;
 
@@ -69,6 +78,10 @@ use strict;
 	my $annotation;
 	my $parent;
 	my $strand;
+	my $q_start;
+	my $q_end;
+	my $s_start;
+	my $s_end;
 	my $phase;
 	my $ID;
 	my $counter = 0;
@@ -78,27 +91,27 @@ use strict;
 	my $source = "blastp";
 	
 #parse AUGUSTUS gff3
-open(FileHandler_AUGUSTUS, "< aug5.gff3");# or die "ERROR: Could not open the file $TARGET\n";
-open(FileHandler_blastP, "< aug5.blast");# or die "ERROR: Could not open the file $IPRSOURCE\n";		
+open(FileHandler_AUGUSTUS, "< testset.aug.gff");# or die "ERROR: Could not open the file $TARGET\n";
+open(FileHandler_blastP, "< testset.aug.blastp");# or die "ERROR: Could not open the file $IPRSOURCE\n";		
 open FileHandler_outFILE, "> blastP_outfile.gff";
 
 while(defined(my $AUGUSTUS_line = <FileHandler_AUGUSTUS>)){
     last if($AUGUSTUS_line =~ /\#\#FASTA/); # Ends as soon as FASTA begins
     next if($AUGUSTUS_line =~ /^\#/); # AUGUSTUS file does not follow strict gff3 guidelines, thus no # is there for next segment
-    next unless($AUGUSTUS_line =~ /\tCDS\t/);
+    next unless($AUGUSTUS_line =~ /\ttranscript\t/);
 
     chomp $AUGUSTUS_line;
     my @AUGUSTUS = split("\t", $AUGUSTUS_line);
-    if($AUGUSTUS[2] eq 'CDS'){
-	$_ = $AUGUSTUS[8];
-	/Parent\=/;
-	$parent = $';
+    if($AUGUSTUS[2] eq 'transcript'){
+	#$_ = $AUGUSTUS[8];
+	#/Parent\=/;
+	$parent = $AUGUSTUS[8];
 	$start = $AUGUSTUS[3];
 	$stop = $AUGUSTUS[4];
 	$seqid = $AUGUSTUS[0];
 	$phase = $AUGUSTUS[7];
 	$strand = $AUGUSTUS[6];
-	#~ print $parent;
+	#print $parent;
 
 	#parse blastp results
 		while(defined(my $blastP_line = <FileHandler_blastP>)){ # Filehandler zurücksetzen !!!!! Muss von Anfagn des Files starten
@@ -110,16 +123,16 @@ while(defined(my $AUGUSTUS_line = <FileHandler_AUGUSTUS>)){
 		    if($blastP[0] eq $parent){
 				$accession = $blastP[1];
 				$organism= $blastP[2];
-				$score = $blastP[6];
-				$identity = $blastP[4];
-				$annotation = $blastP[3];
-				$SUBJlength = $blastP[5];
+				$score = $blastP[10];
+				$identity = $blastP[8];
+				$annotation = $blastP[7];
+				$SUBJlength = $blastP[9];
+				$s_start = 3*$blastP[5];
+				$s_end = 3*$blastP[6];
 				$ID = $parent.".a".$counter; # For unique ID
-				$hitSTART = ;
-				$hitSTOP = ;
-				print FileHandler_outFILE "$seqid\t$source\t$type\t$start\t$stop\t$score\t$strand\t$phase\tName=$annotation;ID=$ID;Length=$SUBJlength;Perc. identy=$identity;Dbxref=$accession\n";
+				print FileHandler_outFILE "$seqid\t$source\t$type\t$start\t$stop\t$score\t$strand\t$phase\tName=$annotation;Target=$parent $s_start $s_end $strand;ID=$ID;Length=$SUBJlength;Perc. identy=$identity;Dbxref=$accession\n";
 			}
-		
+		#query seqID	subject seqID	Subject scien name	query start	q-end	subj.start	subj.End	subj. title (Annotation)	perc. ident.	length	e-val.
 		$counter = $counter+1; # For unique ID
 		}
 		seek FileHandler_blastP,0,0;	
