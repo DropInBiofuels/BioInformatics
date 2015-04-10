@@ -10,8 +10,6 @@
 #
 # gff3out
 
-
-
 use warnings;
 use strict;
 
@@ -19,9 +17,6 @@ use strict;
 #Usage:
 #      ipr2gff3 <iprscan.gff> <AUGUSTUS.gff>
 #
-
-#";
-
 
 #~ if(@ARGV < 2){
     #~ print $usage;
@@ -32,6 +27,7 @@ use strict;
 	my @front_gff;
 	my $Annotation_front;
 	my $GI_Number;
+	my %annotation_hash = ();
 	my $result_type;
 	my $Annotation;
 	my $DBXref;
@@ -39,6 +35,13 @@ use strict;
 open(FileHandler_MAKERGFF, "< testset_nr.gff");# or die "ERROR: Could not open the file $TARGET\n";
 open(FileHandler_nrAnno, "< fungi.annotations.unique");# or die "ERROR: Could not open the file $IPRSOURCE\n";		
 open(FileHandler_outFILE, "> Ccurvatus_anno_nr.gff");
+
+# read annotation set into hash, key = gi, value = annotation
+while(defined(my $nrAnno_line = <FileHandler_nrAnno>)){ # Filehandler zurücksetzen !!!!! Muss von Anfagn des Files starten
+		chomp $nrAnno_line;
+		my @nrAnno = split(/\|/,$nrAnno_line);
+		$annotation_hash{$nrAnno[1]} = $nrAnno[4];
+	}
 
 while(defined(my $MAKERGFF_line = <FileHandler_MAKERGFF>)){
     #next if($MAKERGFF_line !~ /.+\tblastx\t/); # next if there is no blastx in the line not sure if the regex .+ for anything makes sense here
@@ -56,21 +59,9 @@ while(defined(my $MAKERGFF_line = <FileHandler_MAKERGFF>)){
 	$Annotation_front = $MAKERGFF[8];
 	$Annotation_front =~ /^(.*?)\;Name=gi/;
 	$Annotation_front = $1;
-	
-	#parse Annotation_DB for Annotations by extracted gi results
-		while(defined(my $nrAnno_line = <FileHandler_nrAnno>)){ # Filehandler zurücksetzen !!!!! Muss von Anfagn des Files starten
-		    chomp $nrAnno_line;
-		    my @nrAnno = split(/\|/,$nrAnno_line);
-		    #print $nrAnno[4];
-		    if($nrAnno[1] eq $GI_Number){
-				$Annotation = $nrAnno[4];
-				#print "$Annotation\n";
-				print FileHandler_outFILE join("\t",@front_gff,"$Annotation_front;Name=$Annotation;Dbxref=$GI_Number\n");
+				print FileHandler_outFILE join("\t",@front_gff,"$Annotation_front;Name=$annotation_hash{$GI_Number};Dbxref=$GI_Number\n");
 			}
 		}
-		seek FileHandler_nrAnno,0,0;
-	}	
-	}
 close (FileHandler_MAKERGFF);
 close (FileHandler_nrAnno);
 close (FileHandler_outFILE);
